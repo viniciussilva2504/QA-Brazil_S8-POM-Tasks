@@ -7,18 +7,20 @@ class UrbanRoutesPage:
     FROM_LOCATOR = (By.ID, 'from')
     TO_LOCATOR = (By.ID, 'to')
     PERSONAL_OPTION_LOCATOR = (By.XPATH, '//div[text()="Personal"]')
-    CARSHARING_ICON_LOCATOR = (By.XPATH, '(//img[@src="/static/media/car.8a2b1ff5.svg"])[2]')
+    SCOOTER_ICON_LOCATOR = (By.XPATH, '//img[@src="/static/media/scooter.cf9bb57e.svg"]')
+    CARSHARING_ICON_LOCATOR = (By.XPATH, '//img[@src="/static/media/drive.05beabd2.svg"]')
     BOOK_BUTTON_LOCATOR = (By.XPATH, '//button[@class="button round"]')
-    CAMPING_LOCATOR = (By.XPATH, '//div[contains(text(),"Camping")]')
+    CAMPING_LOCATOR = (By.XPATH, '//div[text()="Camping"]')
     AUDI_TEXT_LOCATOR = (By.XPATH, '//div[contains(text(),"Audi A3 Sedã")]')
-    ADD_DRIVER_LICENSE_LOCATOR = (By.XPATH, '(//div[contains(text(),"Adicionar carteira de motorista")])[2]')
+    ADD_DRIVER_LICENSE_LOCATOR = (By.XPATH, '//div[@class="np-text" and contains(text(),"Adicionar carteira de motorista")]')
     FIRST_NAME_LOCATOR = (By.ID, 'firstName')
     LAST_NAME_LOCATOR = (By.ID, 'lastName')
     DATE_OF_BIRTH_LOCATOR = (By.ID, 'birthDate')
-    NUMBER_LOCATOR = (By.ID, 'number')
-    ADD_BUTTON_LOCATOR = (By.XPATH, '//form/div[2]/button[1]')
-    ADD_DRIVER_LICENSE_TITLE_LOCATOR = (By.XPATH, '//div[contains(text(),"Adicionar carteira de motorista")]')
-    VERIFICATION_TEXT_LOCATOR = (By.XPATH, '//div[contains(text(),"Obrigado!")]')
+    NUMBER_LOCATOR = (By.XPATH, '//input[@id="number" and @placeholder="01 01 123456"]')
+    ADD_BUTTON_LOCATOR = (By.XPATH, '//button[@type="submit" and not(@disabled) and contains(@class,"button")]')
+    ADD_DRIVER_LICENSE_TITLE_LOCATOR = (By.XPATH, '//div[@class="head" and contains(text(),"Adicionar carteira de motorista")]')
+    VERIFICATION_TEXT_LOCATOR = (By.XPATH, '//*[contains(text(),"Obrigado!")]')
+    DURATION_TEXT_LOCATOR = (By.XPATH, '//div[contains(text(),"Duração")]')
 
     def __init__(self, driver):
         self.driver = driver  # Inicializar o driver
@@ -38,6 +40,9 @@ class UrbanRoutesPage:
     def click_carsharing_icon(self):
         # Clique no ícone Carsharing
         self.driver.find_element(*self.CARSHARING_ICON_LOCATOR).click()
+
+    def click_scooter_icon(self):
+        self.driver.find_element(*self.SCOOTER_ICON_LOCATOR).click()
 
     def click_book_button(self):
         # Clique no botão Reservar
@@ -81,13 +86,34 @@ class UrbanRoutesPage:
 
     def get_verification_text(self):
         # Retornar o texto de verificação
-        return self.driver.find_element(*self.VERIFICATION_TEXT_LOCATOR).text
+        for element in self.driver.find_elements(*self.VERIFICATION_TEXT_LOCATOR):
+            text = (element.text or element.get_attribute('textContent') or '').strip()
+            if text:
+                return text
+        return ''
+
+    def get_duration_text(self):
+        return self.driver.find_element(*self.DURATION_TEXT_LOCATOR).text
+
+    def enter_locations(self, from_text, to_text):
+        self.enter_from_location(from_text)
+        self.enter_to_location(to_text)
 
     # Etapa para inserir "De", "Para" e clicar em "personal_option", "carsharing_icon", "book_button" e "camping"
     def choose_camping_car(self, from_text, to_text):
-        ...
+        self.enter_locations(from_text, to_text)
+        self.click_personal_option()
+        self.click_carsharing_icon()
+        self.click_book_button()
+        self.click_camping()
 
     # Etapa para clicar em "add_driver_license"; para digitar "first_name", "last_name", "date_of_birth", "number"; e
     # para clicar em "title" e "add_button"
     def adding_driver_license(self, first_name, last_name, date_of_birth, number):
-        ...
+        self.click_add_driver_license()
+        self.enter_first_name(first_name)
+        self.enter_last_name(last_name)
+        self.enter_date_of_birth(date_of_birth)
+        self.enter_number(number)
+        self.click_title()
+        self.click_add_button()
